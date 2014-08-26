@@ -5,7 +5,7 @@ import akka.util.Timeout
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.collection.mutable.Queue
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global // eww
 
@@ -72,7 +72,18 @@ object Concurrent {
     system.actorOf(Props(new Actor {
       val queue = new Queue[Result]
       val count = new AtomicInteger(0)
-      def receive = {
+      val hasTimedOut = new AtomicBoolean(false)
+
+      def hasTimedOut(receive: Receive): Receive = {
+        case msg if hasTimedOut.get =>
+          val listener = sender
+          listener ! SearchTimeout
+
+        case msg =>
+          receive(msg)
+      }
+
+      def receive = hasTimedOut {
         case result: Result =>
           queue.enqueue(result)
           count.incrementAndGet()
@@ -90,8 +101,7 @@ object Concurrent {
           listener ! queue.dequeue
 
         case SearchTimeout =>
-          val listener = sender
-          listener ! SearchTimeout
+          hasTimedOut.getAndSet(true)
 
         case unhandled =>
           println(s"unhandled message of ${unhandled}")
