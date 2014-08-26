@@ -1,5 +1,8 @@
 package main
 
+// Taken from:
+// http://talks.golang.org/2012/concurrency.slide#1
+
 import "fmt"
 import "time"
 import "math/rand"
