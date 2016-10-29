@@ -1,6 +1,7 @@
 package main
 
-// comments
+// Video: https://www.youtube.com/watch?v=cN_DpYBzKso
+// Slides: https://talks.golang.org/2012/waza.slide#1
 
 type Request struct {
   fn func() int
